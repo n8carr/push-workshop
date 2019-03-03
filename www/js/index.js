@@ -27,15 +27,43 @@ var app = {
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
+        document.getElementById("toggleBtn").addEventListener('click', this.toggle, false);
     },
     // deviceready Event Handler
     //
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        console.log('registration event');
+        console.log('deviceready event');
         document.getElementById('regId').innerHTML = 'true';
-    }
-};
+
+        app.push = PushNotification.init({
+            "android": {
+                "senderID": "Your GCM ID"
+            },
+            "ios": {
+              "sound": true,
+              "vibration": true,
+              "badge": true
+            },
+            "windows": {}
+        });
+
+        app.push.on('registration', function(data) {
+            console.log("registration event: " + data.registrationId);
+            document.getElementById("regId").innerHTML = data.registrationId;
+            var oldRegId = localStorage.getItem('registrationId');
+            if (oldRegId !== data.registrationId) {
+                // Save new registration ID
+                localStorage.setItem('registrationId', data.registrationId);
+                // Post registrationId to your app server as the value has changed
+            }
+        });
+
+        app.push.on('error', function(e) {
+            console.log("push error = " + e.message);
+        });
+           }
+        };
 
 app.initialize();
